@@ -16,16 +16,19 @@ using namespace CryptoPP;
 
 string find_binstring(byte a)
 {
+    int x=(int)a;
 
 }
 int find_hamming_distance(byte a,byte b)
 {   int count=0;
-   cout<<"lll";
+   //cout<<"lll";
   byte t= a^b;
-  cout<<";;;;"<<endl;
+  //cout<<";;;;"<<endl;
   for(int i=0;i<8;i++)
   {
-    count=count+(t&(1<<i));
+    count=count+(t&1);
+    t=t>>1;
+    
 
   }
   return count;
@@ -33,12 +36,13 @@ int find_hamming_distance(byte a,byte b)
 }
 int find_avalanche_effect(vector <byte> input,vector <byte> cipher)
 {
-  cout<<"in avalanche"<<endl;
+  cout<<input.size()<<endl;
   int count=0;
   for(int i=0;i<input.size();i++)
   {
-    cout<<"heerreee"<<endl;
+    //cout<<"heerreee"<<endl;
     count=count+find_hamming_distance(input[i],cipher[i]);
+    //cout<<i<<" "<<count<<endl;
   }
   return count;
 }
@@ -57,8 +61,9 @@ vector<byte> flip_bit(vector <byte> input,int n)
 
 int main(int argc, char* argv[])
 {
-
-
+  
+  srand(32);
+  float sum=0;
   AutoSeededRandomPool prng;
   SecByteBlock key(DES::DEFAULT_KEYLENGTH);
   cout<<"key size="<<key.size()<<endl;
@@ -70,10 +75,10 @@ int main(int argc, char* argv[])
   HexEncoder encoder(new FileSink(cout));
   vector <byte> prev_cipher;
 
-  string str("Attacks!");
+  string str("Attacks");
   std::copy(str.begin(), str.end(), std::back_inserter(plain));
 
-  for(int i=0;i<2;i++)
+  for(int i=0;i<1000;i++)
   {
     vector<byte> cipher,recover;
     cout << "Plain text: ";
@@ -123,15 +128,21 @@ int main(int argc, char* argv[])
   encoder.MessageEnd();
   cout << endl;
 
-  vector<byte> new_plain=flip_bit(plain,1);
+  vector<byte> new_plain=flip_bit(plain,rand()%63);
   plain=new_plain;
   if(i==0)
+  {
+    prev_cipher.resize(cipher.size());
+    prev_cipher=cipher;
     continue;
+  }
   else
   {
     int c;
     c=find_avalanche_effect(cipher,prev_cipher);
-    cout<<"Avalanche effect is: "<<endl;
+    //cout<<"Avalanche effect is: "<<float(c)*100/64<<endl;
+    sum+=float(c)*100/64;
+
   }
   
   prev_cipher.resize(cipher.size());
@@ -142,6 +153,6 @@ int main(int argc, char* argv[])
 
   }
 
-  
+  cout<<"Average="<<sum/1000;
   return 0;
 }
